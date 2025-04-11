@@ -1,0 +1,44 @@
+﻿@model IEnumerable<ADO.Net_App.Models.Product>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Product List</h2>
+    <a class="btn btn-primary" asp-action="Create">+ Add Product</a>
+</div>
+
+@if (Model == null || !Model.Any())
+{
+    <p>No products available.</p>
+}
+else
+{
+    <table class="table table-striped table-bordered">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th>Description</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var product in Model)
+            {
+                <tr>
+                    <td>@product.Id</td>
+                    <td>@product.Name</td>
+                    <td>@product.Quantity</td>
+                    <td>@product.Price</td>
+                    <td>@product.Stock</td>
+                    <td>@product.Description</td>
+                    <td>
+                        @Html.ActionLink("Edit", "Edit", new { id = product.Id }) |
+                        @Html.ActionLink("Delete", "Delete", new { id = product.Id })
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
