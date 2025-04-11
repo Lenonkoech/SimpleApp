@@ -14,7 +14,7 @@ else
     <table class="table table-striped table-bordered">
         <thead>
             <tr>
-                <th>ID</th>
+                <th>#</th>
                 <th>Name</th>
                 <th>Quantity</th>
                 <th>Price</th>
@@ -24,10 +24,13 @@ else
             </tr>
         </thead>
         <tbody>
+            @{
+                int count = 1;
+            }
             @foreach (var product in Model)
             {
                 <tr>
-                    <td>@product.Id</td>
+                    <td>@count</td>
                     <td>@product.Name</td>
                     <td>@product.Quantity</td>
                     <td>@product.Price</td>
@@ -38,6 +41,7 @@ else
                         @Html.ActionLink("Delete", "Delete", new { id = product.Id })
                     </td>
                 </tr>
+                count++;
             }
         </tbody>
     </table>

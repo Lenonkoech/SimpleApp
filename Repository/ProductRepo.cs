@@ -12,31 +12,73 @@ namespace ADO.Net_App.Repository
 
         public void Initialize()
         {
-            Console.WriteLine("This method is being called.");
             try
             {
-                using (MySqlConnection connection = new MySqlConnection(connectionString))
+                // Connect to MySQL server, NOT to a specific DB
+                var builder = new MySqlConnectionStringBuilder(connectionString)
+                {
+                    Database = "" 
+                };
+
+                using (var connection = new MySqlConnection(builder.ToString()))
                 {
                     connection.Open();
-                    Console.WriteLine("Connection to DB established");
-                    using (MySqlCommand checkDb = new MySqlCommand($"SHOW DATABASES LIKE 'ProductsDb';", connection))
-                    using (MySqlDataReader reader = checkDb.ExecuteReader())
+                    Console.WriteLine("Connection to MySQL server established");
+
+                    using (var checkDb = new MySqlCommand("SHOW DATABASES LIKE 'ProductsDb';", connection))
+                    using (var reader = checkDb.ExecuteReader())
                     {
                         if (reader.HasRows)
                         {
-                            Console.WriteLine("Database already Exists");
-                            return;
+                            Console.WriteLine("Database already exists.");
+                            reader.Close();
+                        }
+                        else
+                        {
+                            reader.Close();
+
+                            //Create the database
+                            using (var createDb = new MySqlCommand("CREATE DATABASE ProductsDb;", connection))
+                            {
+                                createDb.ExecuteNonQuery();
+                                Console.WriteLine("Database created successfully.");
+                            }
                         }
                     }
 
-                    using (MySqlCommand createDb = new MySqlCommand($"CREATE DATABASE IF NOT EXISTS ProductsDb;", connection))
+                    connection.Close();
+                }
+
+                // Connection to the newly created or existing database
+                var dbBuilder = new MySqlConnectionStringBuilder(connectionString)
+                {
+                    Database = "ProductsDb"
+                };
+
+                using (var dbConnection = new MySqlConnection(dbBuilder.ToString()))
+                {
+                    dbConnection.Open();
+                    Console.WriteLine("Connected to ProductsDb.");
+
+                    // Create table if not exists
+                    string createTableQuery = @"
+                CREATE TABLE IF NOT EXISTS products (
+                Id INT PRIMARY KEY AUTO_INCREMENT,
+                Name VARCHAR(255) NOT NULL,
+                Quantity INT NOT NULL,
+                Price DECIMAL(10,2) NOT NULL,
+                Stock INT NOT NULL,
+                Description TEXT
+                 );
+";
+
+                    using (var createTable = new MySqlCommand(createTableQuery, dbConnection))
                     {
-                        createDb.ExecuteNonQuery();
-                        Console.WriteLine("Database created successfully");
+                        createTable.ExecuteNonQuery();
+                        Console.WriteLine("Table 'products' checked/created successfully.");
                     }
 
-                    Console.WriteLine("Connection to DB successful");
-                    connection.Close();
+                    dbConnection.Close();
                 }
             }
             catch (MySqlException e)
@@ -128,7 +170,7 @@ namespace ADO.Net_App.Repository
                 using (MySqlConnection connection = new MySqlConnection(connectionString))
                 {
                     connection.Open();
-                    string query = "INSERT INTO Products (Name, Quantity, Price, Stock, Description) VALUES (@Name, @Quantity, @Price, @Stock, @Description)";
+                    string query = "INSERT INTO products (Name, Quantity, Price, Stock, Description) VALUES (@Name, @Quantity, @Price, @Stock, @Description)";
                     using (MySqlCommand cmd = new MySqlCommand(query, connection))
                     {
                         cmd.Parameters.AddWithValue("@Name", product.Name);
